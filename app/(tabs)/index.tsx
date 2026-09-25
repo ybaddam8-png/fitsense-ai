@@ -1,48 +1,15 @@
-import { ScrollView, Text, View, TouchableOpacity } from "react-native";
-
+import { useEffect, useMemo } from "react";
+import { ScrollView, Text, View, StyleSheet, Pressable } from "react-native";
+import { useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 import { ScreenContainer } from "@/components/screen-container";
-
-/**
- * Home Screen - NativeWind Example
- *
- * This template uses NativeWind (Tailwind CSS for React Native).
- * You can use familiar Tailwind classes directly in className props.
- *
- * Key patterns:
- * - Use `className` instead of `style` for most styling
- * - Theme colors: use tokens directly (bg-background, text-foreground, bg-primary, etc.); no dark: prefix needed
- * - Responsive: standard Tailwind breakpoints work on web
- * - Custom colors defined in tailwind.config.js
- */
-export default function HomeScreen() {
-  return (
-    <ScreenContainer className="p-6">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="flex-1 gap-8">
-          {/* Hero Section */}
-          <View className="items-center gap-2">
-            <Text className="text-4xl font-bold text-foreground">Welcome</Text>
-            <Text className="text-base text-muted text-center">
-              Edit app/(tabs)/index.tsx to get started
-            </Text>
-          </View>
-
-          {/* Example Card */}
-          <View className="w-full max-w-sm self-center bg-surface rounded-2xl p-6 shadow-sm border border-border">
-            <Text className="text-lg font-semibold text-foreground mb-2">NativeWind Ready</Text>
-            <Text className="text-sm text-muted leading-relaxed">
-              Use Tailwind CSS classes directly in your React Native components.
-            </Text>
-          </View>
-
-          {/* Example Button */}
-          <View className="items-center">
-            <TouchableOpacity className="bg-primary px-6 py-3 rounded-full active:opacity-80">
-              <Text className="text-background font-semibold">Get Started</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
-    </ScreenContainer>
-  );
-}
+import { Card } from "@/src/components/common/Card";
+import { Button } from "@/src/components/common/Button";
+import { MetricBadge } from "@/src/components/common/MetricBadge";
+import { WeeklyActivityChart } from "@/src/components/charts/WeeklyActivityChart";
+import { Colors } from "@/src/constants/Colors";
+import { activityFromWorkouts, averageWorkoutScore, currentActivityMinutes, greeting, insightCopy, streakCount, totalWorkoutReps } from "@/src/types/pose";
+import { useWorkoutStore } from "@/src/store/useWorkoutStore";
+import { useUserStore } from "@/src/store/useUserStore";
+export default function HomeScreen() { const router = useRouter(); const workouts = useWorkoutStore((state) => state.workouts); const loading = useWorkoutStore((state) => state.loading); const load = useWorkoutStore((state) => state.load); const profile = useUserStore((state) => state.profile); const hydrate = useUserStore((state) => state.hydrate); useEffect(() => { void load(); void hydrate(); }, [load, hydrate]); const activity = useMemo(() => activityFromWorkouts(workouts), [workouts]); const score = averageWorkoutScore(workouts); const streak = streakCount(workouts); return <ScreenContainer edges={["top", "left", "right"]} style={styles.screen}><ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}><View style={styles.header}><View><Text style={styles.eyebrow}>PERSONAL FITNESS COACH</Text><Text style={styles.greeting}>{greeting()}, {profile.displayName.split(" ")[0]}.</Text></View><View style={styles.avatar}><Text style={styles.avatarText}>{profile.displayName.slice(0, 1).toUpperCase()}</Text></View></View><View style={styles.hero}><View style={styles.heroGlow} /><Text style={styles.heroEyebrow}>MOVE BETTER. TRAIN SMARTER.</Text><Text style={styles.heroTitle}>Train with{"\n"}clarity.</Text><Text style={styles.heroBody}>Real-time form cues, deterministic rep counts, and private progress tracking.</Text><View style={styles.heroActions}><Button label="Start a workout" onPress={() => router.push("/workout-selection" as never)} /><Pressable onPress={() => router.push({ pathname: "/camera-setup", params: { exerciseId: "squat", mode: "demo" } } as never)} style={({ pressed }) => [styles.demoLink, pressed && { opacity: 0.7 }]}><MaterialIcons name="play-circle-outline" size={20} color={Colors.accent} /><Text style={styles.demoText}>Try Demo Mode</Text></Pressable></View></View><View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Your momentum</Text><Text style={styles.sectionMeta}>{loading ? "Loading" : "This week"}</Text></View><View style={styles.metricsRow}><Card style={styles.metricCard}><MetricBadge label="ACTIVE MIN" value={`${currentActivityMinutes(activity)}`} /><Text style={styles.metricHint}>/ 90 goal</Text></Card><Card style={styles.metricCard}><MetricBadge label="FORM SCORE" value={score ? `${score}%` : "—"} accent={Colors.cyan} /><Text style={styles.metricHint}>{score ? "average" : "start today"}</Text></Card><Card style={styles.metricCard}><MetricBadge label="STREAK" value={`${streak}`} accent={Colors.orange} /><Text style={styles.metricHint}>days</Text></Card></View><Card style={styles.chartCard}><View style={styles.cardHeader}><View><Text style={styles.cardTitle}>Weekly activity</Text><Text style={styles.cardSubtitle}>Minutes moving · last 7 days</Text></View><MaterialIcons name="bar-chart" color={Colors.accent} size={22} /></View><WeeklyActivityChart activity={activity} /></Card><Card style={styles.insight}><View style={styles.insightIcon}><MaterialIcons name="auto-awesome" color={Colors.background} size={18} /></View><View style={styles.insightCopy}><Text style={styles.cardTitle}>Coach insight</Text><Text style={styles.insightText}>{insightCopy(workouts)}</Text></View></Card><View style={styles.footerRow}><Text style={styles.footerText}>{totalWorkoutReps(workouts)} total reps logged</Text><Pressable onPress={() => router.push("/history" as never)}><Text style={styles.footerLink}>See history →</Text></Pressable></View></ScrollView></ScreenContainer>; }
+const styles = StyleSheet.create({ screen: { backgroundColor: Colors.background }, content: { padding: 22, gap: 20, paddingBottom: 40 }, header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 8 }, eyebrow: { color: Colors.accent, fontSize: 10, fontWeight: "900", letterSpacing: 1.6 }, greeting: { color: Colors.foreground, fontSize: 24, fontWeight: "900", marginTop: 5 }, avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center" }, avatarText: { color: Colors.background, fontWeight: "900", fontSize: 18 }, hero: { backgroundColor: Colors.surfaceRaised, borderRadius: 28, padding: 24, overflow: "hidden", borderWidth: 1, borderColor: Colors.border, gap: 12 }, heroGlow: { position: "absolute", width: 180, height: 180, borderRadius: 90, backgroundColor: "#B9F06B18", right: -70, top: -80 }, heroEyebrow: { color: Colors.muted, fontSize: 10, fontWeight: "900", letterSpacing: 1.5 }, heroTitle: { color: Colors.foreground, fontSize: 42, lineHeight: 44, fontWeight: "900", letterSpacing: -1 }, heroBody: { color: Colors.muted, fontSize: 15, lineHeight: 22, maxWidth: 300 }, heroActions: { gap: 12, marginTop: 8 }, demoLink: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, minHeight: 42 }, demoText: { color: Colors.accent, fontWeight: "800" }, sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }, sectionTitle: { color: Colors.foreground, fontSize: 18, fontWeight: "900" }, sectionMeta: { color: Colors.muted, fontSize: 12, fontWeight: "700" }, metricsRow: { flexDirection: "row", gap: 9 }, metricCard: { flex: 1, padding: 13, minHeight: 98 }, metricHint: { color: Colors.muted, fontSize: 11, marginTop: 5 }, chartCard: { gap: 12 }, cardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, cardTitle: { color: Colors.foreground, fontSize: 16, fontWeight: "900" }, cardSubtitle: { color: Colors.muted, fontSize: 12, marginTop: 3 }, insight: { flexDirection: "row", gap: 14, alignItems: "center" }, insightIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center" }, insightCopy: { flex: 1, gap: 4 }, insightText: { color: Colors.muted, fontSize: 13, lineHeight: 19 }, footerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 2 }, footerText: { color: Colors.muted, fontSize: 12 }, footerLink: { color: Colors.accent, fontSize: 12, fontWeight: "800" } });

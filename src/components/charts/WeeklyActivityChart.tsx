@@ -1,0 +1,5 @@
+import { Text, View, StyleSheet } from "react-native";
+import type { ActivityDay } from "@/src/types/pose";
+import { Colors } from "@/src/constants/Colors";
+export function WeeklyActivityChart({ activity }: { activity: ActivityDay[] }) { const max = Math.max(...activity.map((day) => day.minutes), 1); return <View accessible accessibilityLabel={activity.map((day) => `${day.day} ${day.minutes} minutes`).join(", ")} style={styles.chart}>{activity.map((day, index) => <View key={`${day.day}-${index}`} style={styles.column}><View style={styles.track}><View style={[styles.bar, { height: Math.max(6, (day.minutes / max) * 88) }]} /></View><Text style={styles.day}>{day.day}</Text></View>)}</View>; }
+const styles = StyleSheet.create({ chart: { height: 128, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", paddingTop: 8 }, column: { flex: 1, alignItems: "center", gap: 9 }, track: { height: 92, width: 14, borderRadius: 8, backgroundColor: Colors.surfaceRaised, justifyContent: "flex-end", overflow: "hidden" }, bar: { width: 14, borderRadius: 8, backgroundColor: Colors.accent }, day: { color: Colors.muted, fontSize: 11, fontWeight: "700" } });

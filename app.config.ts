@@ -86,6 +86,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    "expo-sqlite",
     [
       "expo-audio",
       {
@@ -122,7 +123,6 @@ const config: ExpoConfig = {
     ],
   ],
   experiments: {
-    typedRoutes: true,
     reactCompiler: true,
   },
 };
