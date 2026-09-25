@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, InsertWorkout, users, workouts } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -87,6 +87,30 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function upsertWorkoutForUser(workout: InsertWorkout): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.insert(workouts).values(workout).onDuplicateKeyUpdate({
+    set: {
+      exerciseId: workout.exerciseId,
+      startedAt: workout.startedAt,
+      endedAt: workout.endedAt,
+      reps: workout.reps,
+      durationSeconds: workout.durationSeconds,
+      averageFormScore: workout.averageFormScore,
+      bestFormScore: workout.bestFormScore,
+      feedbackHighlights: workout.feedbackHighlights,
+      source: workout.source,
+    },
+  });
+}
+
+export async function getWorkoutsForUser(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db.select().from(workouts).where(eq(workouts.userId, userId));
 }
 
 // TODO: add feature queries here as your schema grows.

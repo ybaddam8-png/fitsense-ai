@@ -46,12 +46,14 @@ const config: ExpoConfig = {
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
   userInterfaceStyle: "automatic",
-  newArchEnabled: true,
+  // The MediaPipe view module uses the legacy native component bridge.
+  newArchEnabled: false,
   ios: {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
     "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "FitSense uses the camera to detect your pose on-device and provide movement feedback."
       }
   },
   android: {
@@ -64,7 +66,7 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
-    permissions: ["POST_NOTIFICATIONS"],
+    permissions: ["POST_NOTIFICATIONS", "CAMERA"],
     intentFilters: [
       {
         action: "VIEW",
@@ -87,6 +89,15 @@ const config: ExpoConfig = {
   plugins: [
     "expo-router",
     "expo-sqlite",
+    "expo-asset",
+    "expo-font",
+    "expo-web-browser",
+    [
+      "expo-camera",
+      {
+        cameraPermission: "FitSense uses the camera to detect your pose on-device and provide movement feedback."
+      }
+    ],
     [
       "expo-audio",
       {
@@ -117,7 +128,8 @@ const config: ExpoConfig = {
       {
         android: {
           buildArchs: ["armeabi-v7a", "arm64-v8a"],
-          minSdkVersion: 24,
+          minSdkVersion: 26,
+          deploymentTarget: "13.0",
         },
       },
     ],

@@ -1,28 +1,10 @@
+import { z } from "zod";
 import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
-
-export const appRouter = router({
-  // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
-  system: systemRouter,
-  auth: router({
-    me: publicProcedure.query((opts) => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
-    }),
-  }),
-
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
-});
-
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { getWorkoutsForUser, upsertWorkoutForUser } from "./db";
+const workoutInput = z.object({ id: z.string().min(1).max(128), exerciseId: z.enum(["squat", "pushup", "bicep-curl", "lunge"]), startedAt: z.string().datetime(), endedAt: z.string().datetime(), reps: z.number().int().nonnegative(), durationSeconds: z.number().int().nonnegative(), averageFormScore: z.number().int().min(0).max(100), bestFormScore: z.number().int().min(0).max(100), feedbackHighlights: z.array(z.string().max(240)).max(10), source: z.enum(["camera", "demo"]) });
+function toClientWorkout(row: Awaited<ReturnType<typeof getWorkoutsForUser>>[number]) { return { id: row.clientId, exerciseId: row.exerciseId, startedAt: row.startedAt.toISOString(), endedAt: row.endedAt.toISOString(), reps: row.reps, durationSeconds: row.durationSeconds, averageFormScore: row.averageFormScore, bestFormScore: row.bestFormScore, feedbackHighlights: JSON.parse(row.feedbackHighlights) as string[], source: row.source }; }
+export const appRouter = router({ system: systemRouter, auth: router({ me: publicProcedure.query((opts) => opts.ctx.user), logout: publicProcedure.mutation(({ ctx }) => { const cookieOptions = getSessionCookieOptions(ctx.req); ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 }); return { success: true } as const; }) }), workouts: router({ list: protectedProcedure.query(async ({ ctx }) => { const rows = await getWorkoutsForUser(ctx.user.id); return rows.map(toClientWorkout); }), upsert: protectedProcedure.input(workoutInput).mutation(async ({ ctx, input }) => { await upsertWorkoutForUser({ userId: ctx.user.id, clientId: input.id, exerciseId: input.exerciseId, startedAt: new Date(input.startedAt), endedAt: new Date(input.endedAt), reps: input.reps, durationSeconds: input.durationSeconds, averageFormScore: input.averageFormScore, bestFormScore: input.bestFormScore, feedbackHighlights: JSON.stringify(input.feedbackHighlights), source: input.source }); return { ok: true, id: input.id } as const; }) }) });
 export type AppRouter = typeof appRouter;

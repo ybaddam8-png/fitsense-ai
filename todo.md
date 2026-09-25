@@ -3,29 +3,24 @@
 ## Completed
 
 - [x] Expo mobile scaffold and dark neon-green product theme
-- [x] Home dashboard with momentum metrics and weekly activity chart
-- [x] Exercise selection for squat, push-up, bicep curl, and lunge
-- [x] Demo Mode with deterministic landmark stream
-- [x] Camera setup flow with on-device privacy copy and permission adapter
-- [x] Pose skeleton overlay and live feedback HUD
-- [x] Joint-angle geometry, smoothing utilities, form rules, and rep state machine
-- [x] Workout summary, local history, profile, and privacy screens
-- [x] Native SQLite repository with AsyncStorage web fallback
-- [x] Zustand workout/profile stores and optional summary-only sync service
-- [x] FastAPI health, workout summary, and analytics endpoints
-- [x] Vitest pose engine tests and FastAPI API tests
-- [x] Web preview verification at mobile viewport
+- [x] Home dashboard, exercise selection, setup, live workout, summary, history, and profile flows
+- [x] Deterministic Demo Mode with pose landmarks, joint-angle form rules, smoothing, and rep state machine
+- [x] Native MediaPipe BlazePose integration through `@thinksys/react-native-mediapipe` with iOS/Android camera wrapper and 33-landmark payload normalization
+- [x] Native camera permissions, iOS usage text, Android CAMERA permission, iOS deployment compatibility, and Android minimum SDK configuration
+- [x] Native SQLite persistence with AsyncStorage web fallback
+- [x] OAuth sign-in entry point, SecureStore-backed native sessions, protected tRPC workout procedures, Drizzle `workouts` table, and local/remote merge sync
+- [x] Accessibility defaults for shared buttons plus explicit labels on camera, workout, profile, and sync controls
+- [x] Expo dependency alignment and native prebuild validation
+- [x] Native mapper unit tests, pose engine tests, TypeScript check, server bundle build, and web route screenshots
 
 ## Verification
 
-- `pnpm check` passes.
-- `pnpm test` passes: 2 pose tests passed; the scaffolded auth test remains skipped because it requires external auth context.
-- `backend/.venv/bin/pytest -q` passed: 3 tests passed.
-- Expo preview status reports no TypeScript or LSP errors.
-- Mobile web screenshots verified home, selection, setup, live workout, and summary routes.
+`npx --yes expo-doctor` reports 18/18 checks passed. `pnpm check` passes. `pnpm test` passes 4 tests with the scaffolded auth logout test skipped because it requires external auth context. `pnpm build` produces the server bundle. Generated iOS and Android projects contain the camera permissions and the native dependency includes the bundled pose model for both platforms.
+
+Android Gradle compilation was attempted but is blocked in this Linux sandbox because no Android SDK or `ANDROID_HOME` is installed. iOS compilation and physical VoiceOver/camera testing require macOS/Xcode and real devices. The exact device handoff checklist is recorded in `docs/native-qa.md`.
 
 ## Follow-up
 
-- Replace the camera estimator adapter with the chosen MediaPipe Pose Landmarker runtime in a native build.
-- Add authenticated user-scoped sync if cross-device history becomes a product requirement.
-- Add accessibility audit and native device QA for iOS and Android camera permissions.
+- Run `npx expo run:android` on an Android SDK host and `npx expo run:ios` on macOS.
+- Complete physical camera, permission-denial recovery, background/foreground, VoiceOver, and Dynamic Type checks.
+- Validate OAuth deep-link return and authenticated sync against a real account on both platforms.
